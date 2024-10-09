@@ -10,6 +10,7 @@ import UIKit
 import AVFoundation
 import AVKit
 import Photos
+import YPImagePicker
 
 class ExampleViewController: UIViewController {
     var selectedItems = [YPMediaItem]()
