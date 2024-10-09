@@ -61,18 +61,19 @@ extension YPLibraryVC {
 		}) {
             selectedItems.remove(at: positionIndex)
 
-            // Refresh the numbers
             let selectedIndexPaths = selectedItems.map { IndexPath(row: $0.index, section: 0) }
-            v.collectionView.reloadItems(at: selectedIndexPaths)
-			
+
             // Replace the current selected image with the previously selected one
             if let previouslySelectedIndexPath = selectedIndexPaths.last {
-                v.collectionView.deselectItem(at: indexPath, animated: false)
-                v.collectionView.selectItem(at: previouslySelectedIndexPath, animated: false, scrollPosition: [])
                 currentlySelectedIndex = previouslySelectedIndexPath.row
                 changeAsset(mediaManager.getAsset(at: previouslySelectedIndexPath.row))
             }
-			
+
+            // Refresh the numbers & selection
+            UIView.performWithoutAnimation {
+                v.collectionView.reloadItems(at: selectedIndexPaths)
+            }
+
             checkLimit()
         }
     }
@@ -140,8 +141,8 @@ extension YPLibraryVC: UICollectionViewDelegate {
         cell.durationLabel.isHidden = !isVideo
         cell.durationLabel.text = isVideo ? YPHelper.formattedStrigFrom(asset.duration) : ""
         cell.multipleSelectionIndicator.isHidden = !isMultipleSelectionEnabled
-        cell.isSelected = currentlySelectedIndex == indexPath.row
-        
+        cell.isSelectedForDisplay = currentlySelectedIndex == indexPath.row
+
         // Set correct selection number
         if let index = selectedItems.firstIndex(where: { $0.assetIdentifier == asset.localIdentifier }) {
             let currentSelection = selectedItems[index]
@@ -165,6 +166,8 @@ extension YPLibraryVC: UICollectionViewDelegate {
     }
     
     public func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        collectionView.deselectItem(at: indexPath, animated: true)
+
         let previouslySelectedIndexPath = IndexPath(row: currentlySelectedIndex, section: 0)
         currentlySelectedIndex = indexPath.row
 
@@ -187,19 +190,12 @@ extension YPLibraryVC: UICollectionViewDelegate {
             } else if isLimitExceeded == false {
                 addToSelection(indexPath: indexPath)
             }
-            collectionView.reloadItems(at: [indexPath])
-            collectionView.reloadItems(at: [previouslySelectedIndexPath])
         } else {
             selectedItems.removeAll()
             addToSelection(indexPath: indexPath)
-            
-            // Force deseletion of previously selected cell.
-            // In the case where the previous cell was loaded from iCloud, a new image was fetched
-            // which triggered photoLibraryDidChange() and reloadItems() which breaks selection.
-            //
-            if let previousCell = collectionView.cellForItem(at: previouslySelectedIndexPath) as? YPLibraryViewCell {
-                previousCell.isSelected = false
-            }
+        }
+        UIView.performWithoutAnimation {
+            collectionView.reloadItems(at: [indexPath, previouslySelectedIndexPath])
         }
     }
     
