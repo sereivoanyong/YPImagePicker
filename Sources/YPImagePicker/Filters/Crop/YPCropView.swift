@@ -17,7 +17,7 @@ final class YPCropView: UIView {
     let bottomCurtain = UIView()
     let leadingCurtain = UIView()
     let trailingCurtain = UIView()
-    let toolbar = UIToolbar()
+    let toolbar = UIToolbar(frame: CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: 44))
     let cropArea = YPCropAreaView()
     let grid = YPGridView()
 

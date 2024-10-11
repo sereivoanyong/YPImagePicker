@@ -43,7 +43,6 @@ class YPAlbumVC: UIViewController {
         navigationController?.navigationBar.titleTextAttributes = [.font: YPConfig.fonts.navigationBarTitleFont,
                                                                    .foregroundColor: YPConfig.colors.albumTitleColor]
         navigationController?.navigationBar.barTintColor = YPConfig.colors.albumBarTintColor
-        navigationController?.navigationBar.tintColor = YPConfig.colors.albumTintColor
         setUpTableView()
         fetchAlbumsInBackground()
     }
@@ -85,7 +84,7 @@ extension YPAlbumVC: UITableViewDataSource {
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let album = albums[indexPath.row]
         if let cell = tableView.dequeueReusableCell(withIdentifier: "AlbumCell", for: indexPath) as? YPAlbumCell {
-            cell.thumbnail.backgroundColor = .ypSystemGray
+            cell.thumbnail.backgroundColor = .systemGray
             cell.thumbnail.image = album.thumbnail
             cell.title.text = album.title
             cell.numberOfItems.text = "\(album.numberOfItems)"

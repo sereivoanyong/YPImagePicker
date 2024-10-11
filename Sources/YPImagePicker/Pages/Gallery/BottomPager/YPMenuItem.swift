@@ -11,6 +11,7 @@ import Stevia
 
 final class YPMenuItem: UIView {
     
+    private var isSelected: Bool = false
     var textLabel = UILabel()
     var button = UIButton()
     
@@ -50,10 +51,22 @@ final class YPMenuItem: UIView {
     }
 
     func select() {
-        textLabel.textColor = YPImagePickerConfiguration.shared.colors.bottomMenuItemSelectedTextColor
+        isSelected = true
+        textLabel.textColor = YPImagePickerConfiguration.shared.colors.bottomMenuItemSelectedTextColor ?? tintColor
     }
     
     func deselect() {
+        isSelected = false
         textLabel.textColor = YPImagePickerConfiguration.shared.colors.bottomMenuItemUnselectedTextColor
+    }
+
+    override func tintColorDidChange() {
+        super.tintColorDidChange()
+
+        if isSelected {
+            if YPImagePickerConfiguration.shared.colors.bottomMenuItemSelectedTextColor == nil {
+              textLabel.textColor = tintColor
+            }
+        }
     }
 }

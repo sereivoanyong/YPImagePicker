@@ -105,7 +105,7 @@ internal class YPCameraView: UIView, UIGestureRecognizerDelegate {
         }
         progressBar.style { p in
             p.trackTintColor = .clear
-            p.tintColor = .ypSystemRed
+            p.tintColor = .systemRed
         }
         flashButton.setImage(YPConfig.icons.flashOffIcon, for: .normal)
         flipButton.setImage(YPConfig.icons.loopIcon, for: .normal)

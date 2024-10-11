@@ -207,7 +207,6 @@ open class YPPickerVC: YPBottomPager, YPBottomPagerDelegate {
         
         let vc = YPAlbumVC(albumsManager: albumsManager)
         let navVC = UINavigationController(rootViewController: vc)
-        navVC.navigationBar.tintColor = .ypLabel
         
         vc.didSelectAlbum = { [weak self] album in
             self?.libraryVC?.setAlbum(album)
@@ -224,7 +223,7 @@ open class YPPickerVC: YPBottomPager, YPBottomPagerDelegate {
         let label = UILabel()
         label.text = aTitle
         // Use YPConfig font
-        label.font = YPConfig.fonts.pickerTitleFont
+        label.font = YPConfig.fonts.navigationBarTitleFont
 
         // Use custom textColor if set by user.
         if let navBarTitleColor = UINavigationBar.appearance().titleTextAttributes?[.foregroundColor] as? UIColor {
@@ -239,10 +238,9 @@ open class YPPickerVC: YPBottomPager, YPBottomPagerDelegate {
             align(horizontally: label)
         } else {
             let arrow = UIImageView()
-            arrow.image = YPConfig.icons.arrowDownIcon
-            arrow.image = arrow.image?.withRenderingMode(.alwaysTemplate)
-            arrow.tintColor = .ypLabel
-            
+            arrow.image = YPConfig.icons.arrowDownIcon.withRenderingMode(.alwaysTemplate)
+            arrow.tintColor = .ypSecondaryLabel
+
             let attributes = UINavigationBar.appearance().titleTextAttributes
             if let attributes = attributes, let foregroundColor = attributes[.foregroundColor] as? UIColor {
                 arrow.image = arrow.image?.withRenderingMode(.alwaysTemplate)

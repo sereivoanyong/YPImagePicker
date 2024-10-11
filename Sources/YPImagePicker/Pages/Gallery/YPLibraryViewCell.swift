@@ -13,7 +13,7 @@ class YPMultipleSelectionIndicator: UIView {
     
     let circle = UIView()
     let label = UILabel()
-    var selectionColor = UIColor.ypSystemBlue
+    var selectionColor: UIColor?
 
     convenience init() {
         self.init(frame: .zero)
@@ -33,22 +33,32 @@ class YPMultipleSelectionIndicator: UIView {
         label.textAlignment = .center
         label.textColor = .white
         label.font = YPConfig.fonts.multipleSelectionIndicatorFont
-        
-        set(number: nil)
     }
     
-    func set(number: Int?) {
-        label.isHidden = (number == nil)
-        if let number = number {
-            circle.backgroundColor = selectionColor
-            circle.layer.borderColor = UIColor.clear.cgColor
-            circle.layer.borderWidth = 0
-            label.text = "\(number)"
-        } else {
-            circle.backgroundColor = UIColor.white.withAlphaComponent(0.3)
-            circle.layer.borderColor = UIColor.white.cgColor
-            circle.layer.borderWidth = 1
-            label.text = ""
+    var number: Int? {
+        didSet {
+            label.isHidden = number == nil
+            if let number {
+                circle.backgroundColor = selectionColor ?? tintColor
+                circle.layer.borderColor = UIColor.clear.cgColor
+                circle.layer.borderWidth = 0
+                label.text = "\(number)"
+            } else {
+                circle.backgroundColor = UIColor.white.withAlphaComponent(0.3)
+                circle.layer.borderColor = UIColor.white.cgColor
+                circle.layer.borderWidth = 1
+                label.text = ""
+            }
+        }
+    }
+
+    override func tintColorDidChange() {
+        super.tintColorDidChange()
+
+        if number != nil {
+            if selectionColor == nil {
+                circle.backgroundColor = tintColor
+            }
         }
     }
 }

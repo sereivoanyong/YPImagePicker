@@ -153,9 +153,9 @@ extension YPLibraryVC: UICollectionViewDelegate {
                                                       scrollViewZoomScale: currentSelection.scrollViewZoomScale,
                                                       assetIdentifier: currentSelection.assetIdentifier)
             }
-            cell.multipleSelectionIndicator.set(number: index + 1) // start at 1, not 0
+            cell.multipleSelectionIndicator.number = index + 1 // start at 1, not 0
         } else {
-            cell.multipleSelectionIndicator.set(number: nil)
+            cell.multipleSelectionIndicator.number = nil
         }
 
         // Prevent weird animation where thumbnail fills cell on first scrolls.

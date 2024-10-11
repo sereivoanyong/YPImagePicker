@@ -131,6 +131,7 @@ extension YPSelectionsGalleryVC: UICollectionViewDelegate {
             let navVC = UINavigationController(rootViewController: mediaFilterVC)
             navVC.navigationBar.isTranslucent = false
             navVC.navigationBar.backgroundColor = YPConfig.colors.defaultNavigationBarColor
+            navVC.navigationBar.titleTextAttributes = [.font: YPConfig.fonts.navigationBarTitleFont, .foregroundColor: YPConfig.colors.albumTitleColor]
             present(navVC, animated: true, completion: nil)
         }
     }

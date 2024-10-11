@@ -41,16 +41,6 @@ extension UIColor {
         return UIColor(r: 153, g: 153, b: 153)
     }
     
-    /// The color for content layered on top of the main background.
-    ///
-    /// Like `.secondarySystemBackground`, but backwards-compatible with iOS 12 and lower.
-    static var ypSecondarySystemBackground: UIColor {
-        if #available(iOS 13, *) {
-            return .secondarySystemBackground
-        }
-        return UIColor(r: 247, g: 247, b: 247)
-    }
-    
     /// The color for the main background of your interface.
     ///
     /// Like `.systemBackground`, but backwards-compatible with iOS 12 and lower.
@@ -61,34 +51,13 @@ extension UIColor {
         return .white
     }
     
-    /// The base blue color.
+    /// The color for content layered on top of the main background.
     ///
-    /// Like `.systemBlue`, but backwards-compatible with iOS 12 and lower.
-    static var ypSystemBlue: UIColor {
+    /// Like `.secondarySystemBackground`, but backwards-compatible with iOS 12 and lower.
+    static var ypSecondarySystemBackground: UIColor {
         if #available(iOS 13, *) {
-            return .systemBlue
+            return .secondarySystemBackground
         }
-        return UIColor(r: 10, g: 120, b: 254)
-    }
-    
-    /// The base gray color.
-    ///
-    /// Like `.systemGray`, but backwards-compatible with iOS 12 and lower.
-    static var ypSystemGray: UIColor {
-        if #available(iOS 13, *) {
-            return .systemGray
-        }
-        return .gray
-    }
-    
-    /// The color for red, compatible with dark mode in iOS 13.
-    ///
-    /// Like `.red`, but backwards-compatible with iOS 12 and lower.
-    static var ypSystemRed: UIColor {
-        if #available(iOS 13, *) {
-            return .systemRed
-        }
-        return .red
-        
+        return UIColor(r: 247, g: 247, b: 247)
     }
 }
