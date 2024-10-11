@@ -107,33 +107,29 @@ extension YPSelectionsGalleryVC: UICollectionViewDelegate {
     
     public func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let item = items[indexPath.row]
-        var mediaFilterVC: IsMediaFilterVC?
+        let mediaFilterVC: IsMediaFilterVC
         switch item {
         case .photo(let photo):
-            if !YPConfig.filters.isEmpty, YPConfig.showsPhotoFilters {
-                mediaFilterVC = YPPhotoFiltersVC(inputPhoto: photo, isFromSelectionVC: true)
-            }
+            guard !YPConfig.filters.isEmpty, YPConfig.showsPhotoFilters else { return }
+            mediaFilterVC = YPPhotoFiltersVC(inputPhoto: photo, isFromSelectionVC: true)
         case .video(let video):
-            if YPConfig.showsVideoTrimmer {
-                mediaFilterVC = YPVideoFiltersVC.initWith(video: video, isFromSelectionVC: true)
-            }
+            guard YPConfig.showsVideoTrimmer else { return }
+            mediaFilterVC = YPVideoFiltersVC.initWith(video: video, isFromSelectionVC: true)
         }
         
-        mediaFilterVC?.didSave = { outputMedia in
+        mediaFilterVC.didSave = { outputMedia in
             self.items[indexPath.row] = outputMedia
             collectionView.reloadData()
             self.dismiss(animated: true, completion: nil)
         }
-        mediaFilterVC?.didCancel = {
+        mediaFilterVC.didCancel = {
             self.dismiss(animated: true, completion: nil)
         }
-        if let mediaFilterVC = mediaFilterVC as? UIViewController {
-            let navVC = UINavigationController(rootViewController: mediaFilterVC)
-            navVC.navigationBar.isTranslucent = false
-            navVC.navigationBar.backgroundColor = YPConfig.colors.defaultNavigationBarColor
-            navVC.navigationBar.titleTextAttributes = [.font: YPConfig.fonts.navigationBarTitleFont, .foregroundColor: YPConfig.colors.albumTitleColor]
-            present(navVC, animated: true, completion: nil)
-        }
+        let navVC = UINavigationController(rootViewController: mediaFilterVC)
+        navVC.navigationBar.isTranslucent = false
+        navVC.navigationBar.backgroundColor = YPConfig.colors.defaultNavigationBarColor
+        navVC.navigationBar.titleTextAttributes = [.font: YPConfig.fonts.navigationBarTitleFont, .foregroundColor: YPConfig.colors.albumTitleColor]
+        present(navVC, animated: true, completion: nil)
     }
     
     // Set "paging" behaviour when scrolling backwards.
@@ -141,9 +137,7 @@ extension YPSelectionsGalleryVC: UICollectionViewDelegate {
     // in the collection view Flow subclass & using UIScrollViewDecelerationRateFast
     public func scrollViewDidScroll(_ scrollView: UIScrollView) {
         let isScrollingBackwards = scrollView.contentOffset.x < lastContentOffsetX
-        scrollView.decelerationRate = isScrollingBackwards
-            ? UIScrollView.DecelerationRate.fast
-            : UIScrollView.DecelerationRate.normal
+        scrollView.decelerationRate = isScrollingBackwards ? .fast : .normal
         lastContentOffsetX = scrollView.contentOffset.x
     }
 }
