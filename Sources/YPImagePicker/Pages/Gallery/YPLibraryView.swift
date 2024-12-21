@@ -14,7 +14,7 @@ internal final class YPLibraryView: UIView {
 
     // MARK: - Public vars
 
-    internal let assetZoomableViewMinimalVisibleHeight: CGFloat  = 50
+    internal let assetZoomableViewMinimalVisibleHeight: CGFloat = 44
     internal var assetViewContainerConstraintTop: NSLayoutConstraint?
     internal let collectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
@@ -173,26 +173,32 @@ internal final class YPLibraryView: UIView {
             ),
             line,
             assetViewContainer.subviews(
-                assetZoomableView
+                assetViewContainer.contentView.subviews(
+                    assetZoomableView
+                )
             ),
             progressView,
             maxNumberWarningView.subviews(
                 maxNumberWarningLabel
             )
         )
+        assetViewContainer.sendSubviewToBack(assetViewContainer.contentView)
+        assetViewContainer.contentView.sendSubviewToBack(assetZoomableView)
 
-        collectionContainerView.fillContainer()
-        collectionView.fillHorizontally().bottom(0)
+        assetViewContainer.top(0).fillHorizontally()
+        assetViewContainer.heightAnchor.constraint(equalTo: assetViewContainer.widthAnchor, multiplier: 1, constant: 44).isActive = true
+        assetViewContainerConstraintTop = assetViewContainer.topConstraint
 
-        assetViewContainer.Bottom == line.Top
+        assetZoomableView.fillContainer()
+
+        line.Top == assetViewContainer.Bottom
         line.height(1)
         line.fillHorizontally()
 
-        assetViewContainer.top(0).fillHorizontally().heightEqualsWidth()
-        self.assetViewContainerConstraintTop = assetViewContainer.topConstraint
-        assetZoomableView.fillContainer().heightEqualsWidth()
-        assetZoomableView.Bottom == collectionView.Top
-        assetViewContainer.sendSubviewToBack(assetZoomableView)
+        collectionContainerView.fillContainer()
+
+        collectionView.Top == line.Bottom
+        collectionView.fillHorizontally().bottom(0)
 
         progressView.height(5).fillHorizontally()
         progressView.Bottom == line.Top

@@ -54,6 +54,11 @@ internal final class YPLibraryVC: UIViewController, YPPermissionCheckable {
         registerForTapOnPreview()
         refreshMediaRequest()
 
+        if #available(iOS 15.0, *) {
+            v.assetViewContainer.albumButton.configuration?.title = YPConfig.wordings.libraryRecentsTitle
+        } else {
+            v.assetViewContainer.albumButton.setTitle(YPConfig.wordings.libraryRecentsTitle, for: .normal)
+        }
         v.assetViewContainer.multipleSelectionButton.isHidden = !(YPConfig.library.maxNumberOfItems > 1)
         v.maxNumberWarningLabel.text = String(format: YPConfig.wordings.warningMaxItemsLimit,
 											  YPConfig.library.maxNumberOfItems)
@@ -89,7 +94,11 @@ internal final class YPLibraryVC: UIViewController, YPPermissionCheckable {
     }
 
     func setAlbum(_ album: YPAlbum) {
-        title = album.title
+        if #available(iOS 15.0, *) {
+            v.assetViewContainer.albumButton.configuration?.title = album.title
+        } else {
+            v.assetViewContainer.albumButton.setTitle(album.title, for: .normal)
+        }
         mediaManager.collection = album.collection
         currentlySelectedIndex = 0
         if !isMultipleSelectionEnabled {

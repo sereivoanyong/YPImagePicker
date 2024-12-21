@@ -20,6 +20,12 @@ open class YPImagePicker: UINavigationController {
 
     // MARK: - Public
 
+    @available(iOS 15.0, *)
+    open var pickerTitle: String? {
+        get { return picker.title }
+        set { picker.title = newValue }
+    }
+
     public weak var imagePickerDelegate: YPImagePickerDelegate?
     public func didFinishPicking(completion: @escaping DidFinishPickingCompletion) {
         _didFinishPicking = completion

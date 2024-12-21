@@ -15,10 +15,52 @@ import AVFoundation
 final class YPAssetViewContainer: UIView {
     public var zoomableView: YPAssetZoomableView
     public var itemOverlay: UIView?
+    public let contentView = UIView()
     public let curtain = UIView()
     public let spinnerView = UIView()
-    public let squareCropButton = UIButton()
+    public let albumButton: UIButton = {
+        if #available(iOS 15.0, *) {
+            var configuration: UIButton.Configuration = .plain()
+            let font: UIFont = .systemFont(ofSize: 15, weight: .semibold)
+            configuration.titleTextAttributesTransformer = .init { container in
+                container
+                    .font(font)
+            }
+            configuration.image = UIImage(systemName: "chevron.down", withConfiguration: UIImage.SymbolConfiguration(font: font, scale: .small))
+            configuration.imagePadding = 2
+            configuration.imagePlacement = .trailing
+            configuration.imageColorTransformer = .init { _ in
+                .tertiaryLabel
+            }
+            let button = UIButton(configuration: configuration)
+            button.tintColor = .label
+            return button
+        }
+        let v = UIButton()
+        return v
+    }()
+    public let squareCropButton: UIButton = {
+        if #available(iOS 15.0, *) {
+            var configuration: UIButton.Configuration = .gray()
+            configuration.buttonSize = .mini
+            configuration.cornerStyle = .capsule
+            configuration.image = YPConfig.icons.iOS15CropIcon ?? UIImage(systemName: "arrow.down.backward.and.arrow.up.forward", withConfiguration: UIImage.SymbolConfiguration(weight: .medium))
+            let button = UIButton(configuration: configuration)
+            return button
+        }
+        let v = UIButton()
+        v.setImage(YPConfig.icons.cropIcon, for: .normal)
+        return v
+    }()
     public let multipleSelectionButton: UIButton = {
+        if #available(iOS 15.0, *) {
+            var configuration: UIButton.Configuration = .gray()
+            configuration.buttonSize = .mini
+            configuration.cornerStyle = .capsule
+            configuration.image = YPConfig.icons.iOS15MultipleSelectionIcon ?? UIImage(systemName: "rectangle.on.rectangle", withConfiguration: UIImage.SymbolConfiguration(weight: .medium))
+            let button = UIButton(configuration: configuration)
+            return button
+        }
         let v = UIButton()
         v.setImage(YPConfig.icons.multipleSelectionOffIcon, for: .normal)
         return v
@@ -63,12 +105,16 @@ final class YPAssetViewContainer: UIView {
         // TODO: Add tap gesture to play/pause. Add double tap gesture to square/unsquare
 
         subviews(
-            spinnerView.subviews(
-                spinner
-            ),
-            curtain
+            contentView.subviews(
+                spinnerView.subviews(
+                    spinner
+                ),
+                curtain
+            )
         )
 
+        contentView.fillHorizontally()
+        contentView.heightEqualsWidth()
         spinner.centerInContainer()
         spinnerView.fillContainer()
         curtain.fillContainer()
@@ -78,19 +124,42 @@ final class YPAssetViewContainer: UIView {
         curtain.backgroundColor = UIColor.ypLabel.withAlphaComponent(0.7)
         curtain.alpha = 0
 
+        subviews(albumButton)
+        if #available(iOS 15.0, *) {
+            albumButton.height(44)
+            albumButton.leading(15 - albumButton.configuration!.contentInsets.leading)
+            albumButton.Bottom == self.Bottom
+        } else {
+            albumButton.height(42)
+            albumButton.leading(15)
+            albumButton.Bottom == self.Bottom - 15
+        }
+
         if !onlySquare {
             // Crop Button
-            squareCropButton.setImage(YPConfig.icons.cropIcon, for: .normal)
             subviews(squareCropButton)
-            squareCropButton.size(42)
-            |-15-squareCropButton
-            squareCropButton.Bottom == self.Bottom - 15
+            if #available(iOS 15.0, *) {
+                squareCropButton.size(36)
+                |-15-squareCropButton
+                squareCropButton.Bottom == self.Bottom - (44 + 4)
+            } else {
+                squareCropButton.size(42)
+                |-15-squareCropButton
+                squareCropButton.Bottom == self.Bottom - 15
+            }
         }
 
         // Multiple selection button
         subviews(multipleSelectionButton)
-        multipleSelectionButton.size(42).trailing(15)
-        multipleSelectionButton.Bottom == self.Bottom - 15
+        if #available(iOS 15.0, *) {
+            multipleSelectionButton.size(36)
+            multipleSelectionButton.trailing(15)
+            multipleSelectionButton.Bottom == self.Bottom - 4
+        } else {
+            multipleSelectionButton.size(42)
+            multipleSelectionButton.trailing(15)
+            multipleSelectionButton.Bottom == self.Bottom - 15
+        }
     }
 
     required init?(coder: NSCoder) {
@@ -135,7 +204,11 @@ final class YPAssetViewContainer: UIView {
     public func setMultipleSelectionMode(on: Bool) {
         isMultipleSelectionEnabled = on
         let image = on ? YPConfig.icons.multipleSelectionOnIcon : YPConfig.icons.multipleSelectionOffIcon
-        multipleSelectionButton.setImage(image, for: .normal)
+        if #available(iOS 15.0, *) {
+            multipleSelectionButton.isSelected = on
+        } else {
+            multipleSelectionButton.setImage(image, for: .normal)
+        }
         updateSquareCropButtonState()
     }
 }

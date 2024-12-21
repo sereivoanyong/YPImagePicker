@@ -59,6 +59,7 @@ open class YPPickerVC: YPBottomPager, YPBottomPagerDelegate {
         // Library
         if YPConfig.screens.contains(.library) {
             libraryVC = YPLibraryVC()
+            libraryVC?.v.assetViewContainer.albumButton.addTarget(self, action: #selector(navBarTapped), for: .touchUpInside)
             libraryVC?.delegate = self
         }
         
@@ -210,61 +211,9 @@ open class YPPickerVC: YPBottomPager, YPBottomPagerDelegate {
         
         vc.didSelectAlbum = { [weak self] album in
             self?.libraryVC?.setAlbum(album)
-            self?.setTitleViewWithTitle(aTitle: album.title)
             navVC.dismiss(animated: true, completion: nil)
         }
         present(navVC, animated: true, completion: nil)
-    }
-    
-    func setTitleViewWithTitle(aTitle: String) {
-        let titleView = UIView()
-        titleView.frame = CGRect(x: 0, y: 0, width: 200, height: 40)
-        
-        let label = UILabel()
-        label.text = aTitle
-        // Use YPConfig font
-        label.font = YPConfig.fonts.navigationBarTitleFont
-
-        // Use custom textColor if set by user.
-        if let navBarTitleColor = UINavigationBar.appearance().titleTextAttributes?[.foregroundColor] as? UIColor {
-            label.textColor = navBarTitleColor
-        }
-        
-        if YPConfig.library.options != nil {
-            titleView.subviews(
-                label
-            )
-            |-(>=8)-label.centerHorizontally()-(>=8)-|
-            align(horizontally: label)
-        } else {
-            let arrow = UIImageView()
-            arrow.image = YPConfig.icons.arrowDownIcon.withRenderingMode(.alwaysTemplate)
-            arrow.tintColor = .ypSecondaryLabel
-
-            let attributes = UINavigationBar.appearance().titleTextAttributes
-            if let attributes = attributes, let foregroundColor = attributes[.foregroundColor] as? UIColor {
-                arrow.image = arrow.image?.withRenderingMode(.alwaysTemplate)
-                arrow.tintColor = foregroundColor
-            }
-            
-            let button = UIButton()
-            button.addTarget(self, action: #selector(navBarTapped), for: .touchUpInside)
-            button.setBackgroundColor(UIColor.white.withAlphaComponent(0.5), forState: .highlighted)
-            
-            titleView.subviews(
-                label,
-                arrow,
-                button
-            )
-            button.fillContainer()
-            |-(>=8)-label.centerHorizontally()-arrow-(>=8)-|
-            align(horizontally: label-arrow)
-        }
-        
-        label.firstBaselineAnchor.constraint(equalTo: titleView.bottomAnchor, constant: -14).isActive = true
-        
-        titleView.heightAnchor.constraint(equalToConstant: 40).isActive = true
-        navigationItem.titleView = titleView
     }
     
     func updateUI() {
@@ -277,7 +226,6 @@ open class YPPickerVC: YPBottomPager, YPBottomPagerDelegate {
         }
         switch mode {
         case .library:
-            setTitleViewWithTitle(aTitle: libraryVC?.title ?? "")
             navigationItem.rightBarButtonItem = UIBarButtonItem(title: YPConfig.wordings.next,
                                                                 style: .done,
                                                                 target: self,
@@ -289,12 +237,8 @@ open class YPPickerVC: YPBottomPager, YPBottomPagerDelegate {
                 libraryVC!.selectedItems.count >= YPConfig.library.minNumberOfItems
 
         case .camera:
-            navigationItem.titleView = nil
-            title = cameraVC?.title
             navigationItem.rightBarButtonItem = nil
         case .video:
-            navigationItem.titleView = nil
-            title = videoVC?.title
             navigationItem.rightBarButtonItem = nil
         }
 

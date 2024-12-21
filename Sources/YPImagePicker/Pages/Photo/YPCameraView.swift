@@ -77,7 +77,7 @@ internal class YPCameraView: UIView, UIGestureRecognizerDelegate {
             
             buttonsContainer.fillHorizontally()
             buttonsContainer.height(100)
-            buttonsContainer.Bottom == previewViewContainer.Bottom - 50
+            buttonsContainer.Bottom == previewViewContainer.Bottom - 44
         }
         
         overlayView?.followEdges(previewViewContainer)
