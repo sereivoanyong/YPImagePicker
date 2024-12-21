@@ -31,13 +31,8 @@ open class YPImagePicker: UINavigationController {
         _didFinishPicking = completion
     }
 
-    /// Get a YPImagePicker instance with the default configuration.
-    public convenience init() {
-        self.init(configuration: YPImagePickerConfiguration.shared)
-    }
-
     /// Get a YPImagePicker with the specified configuration.
-    public required init(configuration: YPImagePickerConfiguration) {
+    public init(configuration: YPImagePickerConfiguration = .shared) {
         YPImagePickerConfiguration.shared = configuration
         picker = YPPickerVC()
         super.init(nibName: nil, bundle: nil)
@@ -45,7 +40,8 @@ open class YPImagePicker: UINavigationController {
         picker.pickerVCDelegate = self
     }
 
-    public required init?(coder aDecoder: NSCoder) {
+    @available(*, unavailable)
+    public required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 
