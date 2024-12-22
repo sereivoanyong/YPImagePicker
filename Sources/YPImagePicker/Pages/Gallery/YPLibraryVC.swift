@@ -78,7 +78,7 @@ internal final class YPLibraryVC: UIViewController, YPPermissionCheckable {
                 }
                 
                 // The negative index will be corrected in the collectionView:cellForItemAt:
-                return YPLibrarySelection(index: -1, assetIdentifier: asset.localIdentifier)
+                return YPLibrarySelection(index: -1, assetIdentifier: asset.localIdentifier, mediaType: asset.mediaType, mediaSubtypes: asset.mediaSubtypes)
             }
             v.assetViewContainer.setMultipleSelectionMode(on: isMultipleSelectionEnabled)
             v.collectionView.reloadData()
@@ -196,23 +196,24 @@ internal final class YPLibraryVC: UIViewController, YPPermissionCheckable {
 
         isMultipleSelectionEnabled.toggle()
 
-        if isMultipleSelectionEnabled {
+        if isMultipleSelectionEnabled, let asset = mediaManager.getAsset(at: currentlySelectedIndex) {
             let needPreselectItemsAndNotSelectedAnyYet = selectedItems.isEmpty && YPConfig.library.preSelectItemOnMultipleSelection
-            let shouldSelectByDelegate = delegate?.libraryViewShouldAddToSelection(indexPath: IndexPath(row: currentlySelectedIndex, section: 0), numSelections: selectedItems.count) ?? true
-            if needPreselectItemsAndNotSelectedAnyYet,
-               shouldSelectByDelegate,
-               let asset = mediaManager.getAsset(at: currentlySelectedIndex) {
+            var reset: Bool = false
+            let shouldSelectByDelegate = delegate?.libraryViewShouldAdd(asset, at: currentlySelectedIndex, to: selectedItems, reset: &reset) ?? true
+            if needPreselectItemsAndNotSelectedAnyYet && shouldSelectByDelegate {
                 selectedItems = [
                     YPLibrarySelection(index: currentlySelectedIndex,
                                        cropRect: v.currentCropRect(),
                                        scrollViewContentOffset: v.assetZoomableView.contentOffset,
                                        scrollViewZoomScale: v.assetZoomableView.zoomScale,
-                                       assetIdentifier: asset.localIdentifier)
+                                       assetIdentifier: asset.localIdentifier,
+                                       mediaType: asset.mediaType,
+                                       mediaSubtypes: asset.mediaSubtypes)
                 ]
             }
         } else {
             selectedItems.removeAll()
-            addToSelection(indexPath: IndexPath(row: currentlySelectedIndex, section: 0))
+            addToSelection(at: currentlySelectedIndex)
         }
         
         v.assetViewContainer.setMultipleSelectionMode(on: isMultipleSelectionEnabled)
@@ -254,7 +255,7 @@ internal final class YPLibraryVC: UIViewController, YPPermissionCheckable {
                                         animated: false,
                                         scrollPosition: UICollectionView.ScrollPosition())
             if !isMultipleSelectionEnabled && YPConfig.library.preSelectItemOnMultipleSelection {
-                addToSelection(indexPath: IndexPath(row: 0, section: 0))
+                addToSelection(at: 0)
             }
         } else {
             delegate?.libraryViewHaveNoItems()

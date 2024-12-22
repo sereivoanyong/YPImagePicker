@@ -79,18 +79,26 @@ extension YPLibraryVC {
     }
     
     /// Adds cell to selection
-    func addToSelection(indexPath: IndexPath) {
-        if !(delegate?.libraryViewShouldAddToSelection(indexPath: indexPath,
-                                                       numSelections: selectedItems.count) ?? true) {
-            return
-        }
-        guard let asset = mediaManager.getAsset(at: indexPath.item) else {
+    func addToSelection(at index: Int) {
+        var reset: Bool = false
+        addToSelection(at: index, reset: &reset)
+    }
+
+    func addToSelection(at index: Int, reset: inout Bool) {
+        guard let asset = mediaManager.getAsset(at: index) else {
             print("No asset to add to selection.")
             return
         }
+        if let delegate, !delegate.libraryViewShouldAdd(asset, at: index, to: selectedItems, reset: &reset) {
+            return
+        }
 
-        let newSelection = YPLibrarySelection(index: indexPath.row, assetIdentifier: asset.localIdentifier)
-        selectedItems.append(newSelection)
+        let newSelection = YPLibrarySelection(index: index, assetIdentifier: asset.localIdentifier, mediaType: asset.mediaType, mediaSubtypes: asset.mediaSubtypes)
+        if reset {
+            selectedItems = [newSelection]
+        } else {
+            selectedItems.append(newSelection)
+        }
         checkLimit()
     }
     
@@ -151,7 +159,9 @@ extension YPLibraryVC: UICollectionViewDelegate {
                                                       cropRect: currentSelection.cropRect,
                                                       scrollViewContentOffset: currentSelection.scrollViewContentOffset,
                                                       scrollViewZoomScale: currentSelection.scrollViewZoomScale,
-                                                      assetIdentifier: currentSelection.assetIdentifier)
+                                                      assetIdentifier: currentSelection.assetIdentifier,
+                                                      mediaType: currentSelection.mediaType,
+                                                      mediaSubtypes: currentSelection.mediaSubtypes)
             }
             cell.multipleSelectionIndicator.number = index + 1 // start at 1, not 0
         } else {
@@ -180,6 +190,7 @@ extension YPLibraryVC: UICollectionViewDelegate {
         }
         v.refreshImageCurtainAlpha()
             
+        var reset: Bool = false
         if isMultipleSelectionEnabled {
             let cellIsInTheSelectionPool = isInSelectionPool(indexPath: indexPath)
             let cellIsCurrentlySelected = previouslySelectedIndexPath.row == currentlySelectedIndex
@@ -188,14 +199,18 @@ extension YPLibraryVC: UICollectionViewDelegate {
                     deselect(indexPath: indexPath)
                 }
             } else if isLimitExceeded == false {
-                addToSelection(indexPath: indexPath)
+                addToSelection(at: indexPath.item, reset: &reset)
             }
         } else {
             selectedItems.removeAll()
-            addToSelection(indexPath: indexPath)
+            addToSelection(at: indexPath.item, reset: &reset)
         }
         UIView.performWithoutAnimation {
-            collectionView.reloadItems(at: [indexPath, previouslySelectedIndexPath])
+            if reset {
+                collectionView.reloadData()
+            } else {
+                collectionView.reloadItems(at: [indexPath, previouslySelectedIndexPath])
+            }
         }
     }
     

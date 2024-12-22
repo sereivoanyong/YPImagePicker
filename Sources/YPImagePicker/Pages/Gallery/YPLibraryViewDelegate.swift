@@ -7,13 +7,13 @@
 //
 
 import Foundation
+import Photos
 
-@objc
 public protocol YPLibraryViewDelegate: AnyObject {
     func libraryViewDidTapNext()
     func libraryViewStartedLoadingImage()
     func libraryViewFinishedLoading()
     func libraryViewDidToggleMultipleSelection(enabled: Bool)
-    func libraryViewShouldAddToSelection(indexPath: IndexPath, numSelections: Int) -> Bool
+    func libraryViewShouldAdd(_ asset: PHAsset, at index: Int, to selections: [YPLibrarySelection], reset: inout Bool) -> Bool
     func libraryViewHaveNoItems()
 }
