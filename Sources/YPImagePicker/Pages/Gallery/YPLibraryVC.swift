@@ -272,7 +272,7 @@ internal final class YPLibraryVC: UIViewController, YPPermissionCheckable {
 
         let options = PHFetchOptions()
         options.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: false)]
-        options.predicate = YPConfig.library.mediaType.predicate()
+        options.predicate = NSCompoundPredicate(orPredicateWithSubpredicates: YPConfig.library.mediaTypes.map { NSPredicate(format: "mediaType = %d", $0.rawValue) })
         return options
     }
     

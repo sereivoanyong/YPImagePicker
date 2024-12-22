@@ -51,7 +51,7 @@ class YPAlbumsManager {
                     }
                     album.collection = assetCollection
                     
-                    if YPConfig.library.mediaType == .photo {
+                    if YPConfig.library.mediaTypes == [.image] {
                         if !(assetCollection.assetCollectionSubtype == .smartAlbumSlomoVideos
                             || assetCollection.assetCollectionSubtype == .smartAlbumVideos) {
                             albums.append(album)
@@ -68,26 +68,9 @@ class YPAlbumsManager {
     
     func mediaCountFor(collection: PHAssetCollection) -> Int {
         let options = PHFetchOptions()
-        options.predicate = YPConfig.library.mediaType.predicate()
+        options.predicate = NSCompoundPredicate(orPredicateWithSubpredicates: YPConfig.library.mediaTypes.map { NSPredicate(format: "mediaType = %d", $0.rawValue) })
         let result = PHAsset.fetchAssets(in: collection, options: options)
         return result.count
     }
     
-}
-
-extension YPlibraryMediaType {
-    func predicate() -> NSPredicate {
-        switch self {
-        case .photo:
-            return NSPredicate(format: "mediaType = %d",
-                               PHAssetMediaType.image.rawValue)
-        case .video:
-            return NSPredicate(format: "mediaType = %d",
-                               PHAssetMediaType.video.rawValue)
-        case .photoAndVideo:
-            return NSPredicate(format: "mediaType = %d || mediaType = %d",
-                               PHAssetMediaType.image.rawValue,
-                               PHAssetMediaType.video.rawValue)
-        }
-    }
 }

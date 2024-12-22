@@ -156,7 +156,7 @@ public struct YPConfigLibrary {
     
     /// Choose what media types are available in the library. Defaults to `.photo`.
     /// If you define custom options PHFetchOptions var, than this will not work.
-    public var mediaType = YPlibraryMediaType.photo
+    public var mediaTypes: Set<PHAssetMediaType> = [.image]
 
     /// Initial state of multiple selection button.
     public var defaultMultipleSelection = false
@@ -255,10 +255,4 @@ public struct YPConfigSelectionsGallery {
 public enum YPItemOverlayType {
     case none
     case grid
-}
-
-public enum YPlibraryMediaType {
-    case photo
-    case video
-    case photoAndVideo
 }
