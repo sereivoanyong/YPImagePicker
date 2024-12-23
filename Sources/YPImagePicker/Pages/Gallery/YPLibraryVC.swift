@@ -59,10 +59,21 @@ internal final class YPLibraryVC: UIViewController, YPPermissionCheckable {
         } else {
             v.assetViewContainer.albumButton.setTitle(YPConfig.wordings.libraryRecentsTitle, for: .normal)
         }
-        v.assetViewContainer.multipleSelectionButton.isHidden = !(YPConfig.library.maxNumberOfItems > 1)
-        v.maxNumberWarningLabel.text = String(format: YPConfig.wordings.warningMaxItemsLimit,
-											  YPConfig.library.maxNumberOfItems)
-        
+        v.assetViewContainer.multipleSelectionButton.isHidden = !(YPConfig.library.maximumNumberOfSelectionsCombined > 1)
+        if let maximumNumberOfSelectionsOfType = YPConfig.library.maximumNumberOfSelectionsOfType, !maximumNumberOfSelectionsOfType.isEmpty {
+            let photoLimit = maximumNumberOfSelectionsOfType[.image]
+            let videoLimit = maximumNumberOfSelectionsOfType[.video]
+            if let photoLimit, let videoLimit {
+                v.maxNumberWarningLabel.text = String(format: ypLocalized("YPImagePickerWarningSelectionLimitOfPhotoOrVideo"), photoLimit, videoLimit)
+            } else if let photoLimit {
+                v.maxNumberWarningLabel.text = String(format: ypLocalized("YPImagePickerWarningSelectionLimitOfPhoto"), photoLimit)
+            } else if let videoLimit {
+                v.maxNumberWarningLabel.text = String(format: ypLocalized("YPImagePickerWarningSelectionLimitOfVideo"), videoLimit)
+            }
+        } else {
+            v.maxNumberWarningLabel.text = String(format: YPConfig.wordings.warningMaxItemsLimit, YPConfig.library.maximumNumberOfSelections)
+        }
+
         if let preselectedItems = YPConfig.library.preselectedItems,
            !preselectedItems.isEmpty {
             selectedItems = preselectedItems.compactMap { item -> YPLibrarySelection? in
@@ -144,7 +155,7 @@ internal final class YPLibraryVC: UIViewController, YPPermissionCheckable {
         }
         
         // Activate multiple selection when using `minNumberOfItems`
-        if YPConfig.library.minNumberOfItems > 1 {
+        if YPConfig.library.minimumNumberOfSelections > 1 {
             multipleSelectionButtonTapped()
         }
     }
@@ -189,8 +200,8 @@ internal final class YPLibraryVC: UIViewController, YPPermissionCheckable {
     
     func toggleMultipleSelection() {
         // Prevent desactivating multiple selection when using `minNumberOfItems`
-        if YPConfig.library.minNumberOfItems > 1 && isMultipleSelectionEnabled {
-            print("Selected minNumberOfItems greater than one :\(YPConfig.library.minNumberOfItems). Don't deselecting multiple selection.")
+        if YPConfig.library.minimumNumberOfSelections > 1 && isMultipleSelectionEnabled {
+            print("Selected minNumberOfItems greater than one :\(YPConfig.library.minimumNumberOfSelections). Don't deselecting multiple selection.")
             return
         }
 

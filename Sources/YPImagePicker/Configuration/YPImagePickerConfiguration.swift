@@ -165,11 +165,14 @@ public struct YPConfigLibrary {
     public var preSelectItemOnMultipleSelection = true
 
     /// Anything superior than 1 will enable the multiple selection feature.
-    public var maxNumberOfItems = 1
-    
+    public var maximumNumberOfSelections: Int = 1
+
+    /// Anything superior than 1 will enable the multiple selection feature.
+    public var maximumNumberOfSelectionsOfType: [PHAssetMediaType: Int]?
+
     /// Anything greater than 1 will desactivate live photo and video modes (library only) and
     /// force users to select at least the number of items defined.
-    public var minNumberOfItems = 1
+    public var minimumNumberOfSelections: Int = 1
 
     /// Set the number of items per row in collection view. Defaults to 4.
     public var numberOfItemsInRow: Int = 4
@@ -185,6 +188,13 @@ public struct YPConfigLibrary {
     
     /// Set the overlay type shown on top of the selected library item
     public var itemOverlayType: YPItemOverlayType = .grid
+
+    var maximumNumberOfSelectionsCombined: Int {
+        if let maximumNumberOfSelectionsOfType, !maximumNumberOfSelectionsOfType.isEmpty {
+            return maximumNumberOfSelectionsOfType.values.reduce(0, +)
+        }
+        return maximumNumberOfSelections
+    }
 }
 
 /// Encapsulates video specific settings.

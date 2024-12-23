@@ -7,10 +7,21 @@
 //
 
 import UIKit
+import Photos
 
 extension YPLibraryVC {
-    var isLimitExceeded: Bool { return selectedItems.count >= YPConfig.library.maxNumberOfItems }
-    
+    var isLimitExceeded: Bool {
+        if let maximumNumberOfSelectionsOfType = YPConfig.library.maximumNumberOfSelectionsOfType, !maximumNumberOfSelectionsOfType.isEmpty {
+            for (type, maximumNumberOfSelections) in maximumNumberOfSelectionsOfType {
+                let numberOfSelections = selectedItems.count(where: { $0.mediaType == type })
+                if numberOfSelections >= maximumNumberOfSelections {
+                    return true
+                }
+            }
+        }
+        return selectedItems.count >= YPConfig.library.maximumNumberOfSelections
+    }
+
     func setupCollectionView() {
         v.collectionView.dataSource = self
         v.collectionView.delegate = self
@@ -24,7 +35,7 @@ extension YPLibraryVC {
     
     /// When tapping on the cell with long press, clear all previously selected cells.
     @objc func handleLongPress(longPressGR: UILongPressGestureRecognizer) {
-        if isMultipleSelectionEnabled || isProcessing || YPConfig.library.maxNumberOfItems <= 1 {
+        if isMultipleSelectionEnabled || isProcessing || YPConfig.library.maximumNumberOfSelections <= 1 {
             return
         }
         
