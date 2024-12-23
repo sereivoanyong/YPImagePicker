@@ -11,14 +11,16 @@ import AVFoundation
 import Photos
 
 public protocol YPImagePickerDelegate: AnyObject {
+
     func imagePickerHasNoItemsInLibrary(_ picker: YPImagePicker)
     func imagePickerShouldAdd(_ asset: PHAsset, at index: Int, to selections: [YPLibrarySelection], reset: inout Bool) -> Bool
 }
 
 open class YPImagePicker: UINavigationController {
-    public typealias DidFinishPickingCompletion = (_ items: [YPMediaItem], _ cancelled: Bool) -> Void
 
     // MARK: - Public
+
+    public let configuration: YPImagePickerConfiguration
 
     @available(iOS 15.0, *)
     open var pickerTitle: String? {
@@ -26,13 +28,15 @@ open class YPImagePicker: UINavigationController {
         set { picker.title = newValue }
     }
 
-    public weak var imagePickerDelegate: YPImagePickerDelegate?
-    public func didFinishPicking(completion: @escaping DidFinishPickingCompletion) {
-        _didFinishPicking = completion
-    }
+    weak open var imagePickerDelegate: YPImagePickerDelegate?
+
+    open var finishPickingHandler: (([YPMediaItem]) -> Void)?
+
+    open var cancelHandler: (() -> Void)?
 
     /// Get a YPImagePicker with the specified configuration.
-    public init(configuration: YPImagePickerConfiguration = .shared) {
+    public init(configuration: YPImagePickerConfiguration) {
+        self.configuration = configuration
         YPImagePickerConfiguration.shared = configuration
         picker = YPPickerVC()
         super.init(nibName: nil, bundle: nil)
@@ -45,23 +49,25 @@ open class YPImagePicker: UINavigationController {
         fatalError("init(coder:) has not been implemented")
     }
 
+    deinit {
+        ypLog("Picker deinited 👍")
+    }
+
+    open override var preferredStatusBarStyle: UIStatusBarStyle {
+        return configuration.preferredStatusBarStyle
+    }
+
     open override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
         return .portrait
     }
 
-    open override var preferredStatusBarStyle: UIStatusBarStyle {
-        return YPImagePickerConfiguration.shared.preferredStatusBarStyle
-    }
-
     // MARK: - Private
-
-    private var _didFinishPicking: DidFinishPickingCompletion?
 
     // This nifty little trick enables us to call the single version of the callbacks.
     // This keeps the backwards compatibility keeps the api as simple as possible.
     // Multiple selection becomes available as an opt-in.
     private func didSelect(items: [YPMediaItem]) {
-        _didFinishPicking?(items, false)
+        finishPickingHandler?(items)
     }
     
     private let loadingView = YPLoadingView()
@@ -69,34 +75,36 @@ open class YPImagePicker: UINavigationController {
 
     override open func viewDidLoad() {
         super.viewDidLoad()
-        picker.didClose = { [weak self] in
-            self?._didFinishPicking?([], true)
-        }
+        picker.didClose = cancelHandler
         viewControllers = [picker]
         setupLoadingView()
         navigationBar.isTranslucent = false
-        navigationBar.barTintColor = YPConfig.colors.defaultNavigationBarColor
-        navigationBar.titleTextAttributes = [.font: YPConfig.fonts.navigationBarTitleFont, .foregroundColor: YPConfig.colors.albumTitleColor]
+        navigationBar.barTintColor = configuration.colors.defaultNavigationBarColor
+        navigationBar.titleTextAttributes = [.font: configuration.fonts.navigationBarTitleFont, .foregroundColor: configuration.colors.albumTitleColor]
         view.backgroundColor = .ypSystemBackground
 
         picker.didSelectItems = { [weak self] items in
+            guard let self else { return }
+
             // Use Fade transition instead of default push animation
             let transition = CATransition()
             transition.duration = 0.3
             transition.timingFunction = CAMediaTimingFunction(name: CAMediaTimingFunctionName.easeInEaseOut)
             transition.type = CATransitionType.fade
-            self?.view.layer.add(transition, forKey: nil)
+            view.layer.add(transition, forKey: nil)
             
             // Multiple items flow
             if items.count > 1 {
-                if YPConfig.library.skipSelectionsGallery {
-                    self?.didSelect(items: items)
+                if configuration.library.skipSelectionsGallery {
+                    didSelect(items: items)
                     return
                 } else {
-                    let selectionsGalleryVC = YPSelectionsGalleryVC(items: items) { _, items in
-                        self?.didSelect(items: items)
+                    let selectionsGalleryVC = YPSelectionsGalleryVC(items: items) { [weak self] _, items in
+                        guard let self else { return }
+
+                        didSelect(items: items)
                     }
-                    self?.pushViewController(selectionsGalleryVC, animated: true)
+                    pushViewController(selectionsGalleryVC, animated: true)
                     return
                 }
             }
@@ -105,33 +113,35 @@ open class YPImagePicker: UINavigationController {
             let item = items.first!
             switch item {
             case .photo(let photo):
-                let completion = { (photo: YPMediaPhoto) in
+                let completion = { [weak self] photo in
+                    guard let self else { return }
+
                     let mediaItem = YPMediaItem.photo(p: photo)
                     // Save new image or existing but modified, to the photo album.
-                    if YPConfig.shouldSaveNewPicturesToAlbum {
+                    if configuration.shouldSaveNewPicturesToAlbum {
                         let isModified = photo.modifiedImage != nil
                         if photo.fromCamera || (!photo.fromCamera && isModified) {
-                            YPPhotoSaver.trySaveImage(photo.image, inAlbumNamed: YPConfig.albumName)
+                            YPPhotoSaver.trySaveImage(photo.image, inAlbumNamed: configuration.albumName)
                         }
                     }
-                    self?.didSelect(items: [mediaItem])
+                    didSelect(items: [mediaItem])
                 }
                 
                 func showCropVC(photo: YPMediaPhoto, completion: @escaping (_ aphoto: YPMediaPhoto) -> Void) {
-                    switch YPConfig.showsCrop {
+                    switch configuration.showsCrop {
                     case .rectangle, .circle:
                         let cropVC = YPCropVC(image: photo.image)
                         cropVC.didFinishCropping = { croppedImage in
                             photo.modifiedImage = croppedImage
                             completion(photo)
                         }
-                        self?.pushViewController(cropVC, animated: true)
+                        pushViewController(cropVC, animated: true)
                     default:
                         completion(photo)
                     }
                 }
                 
-                if YPConfig.showsPhotoFilters {
+                if configuration.showsPhotoFilters {
                     let filterVC = YPPhotoFiltersVC(inputPhoto: photo,
                                                     isFromSelectionVC: false)
                     // Show filters and then crop
@@ -140,27 +150,23 @@ open class YPImagePicker: UINavigationController {
                             showCropVC(photo: outputPhoto, completion: completion)
                         }
                     }
-                    self?.pushViewController(filterVC, animated: false)
+                    pushViewController(filterVC, animated: false)
                 } else {
                     showCropVC(photo: photo, completion: completion)
                 }
             case .video(let video):
-                if YPConfig.showsVideoTrimmer {
+                if configuration.showsVideoTrimmer {
                     let videoFiltersVC = YPVideoFiltersVC.initWith(video: video,
                                                                    isFromSelectionVC: false)
                     videoFiltersVC.didSave = { [weak self] outputMedia in
                         self?.didSelect(items: [outputMedia])
                     }
-                    self?.pushViewController(videoFiltersVC, animated: true)
+                    pushViewController(videoFiltersVC, animated: true)
                 } else {
-                    self?.didSelect(items: [YPMediaItem.video(v: video)])
+                    didSelect(items: [YPMediaItem.video(v: video)])
                 }
             }
         }
-    }
-    
-    deinit {
-        ypLog("Picker deinited 👍")
     }
     
     private func setupLoadingView() {
