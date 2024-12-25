@@ -23,7 +23,7 @@ struct YPAlert {
 												  height: 0)
             popoverController.permittedArrowDirections = []
         }
-        alert.addAction(UIAlertAction(title: YPConfig.wordings.ok, style: UIAlertAction.Style.default, handler: nil))
+        alert.addAction(UIAlertAction(title: YPConfig.wordings.ok, style: .cancel, handler: nil))
         return alert
     }
     
@@ -41,7 +41,7 @@ struct YPAlert {
 												  height: 0)
             popoverController.permittedArrowDirections = []
         }
-        alert.addAction(UIAlertAction(title: YPConfig.wordings.ok, style: UIAlertAction.Style.default, handler: nil))
+        alert.addAction(UIAlertAction(title: YPConfig.wordings.ok, style: .cancel, handler: nil))
         return alert
     }
 }
